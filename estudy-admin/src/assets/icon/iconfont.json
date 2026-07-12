@@ -1,0 +1,135 @@
+{
+  "id": "5036430",
+  "name": "estudy",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "5027",
+      "name": "手机",
+      "font_class": "phone",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "785039",
+      "name": "上传",
+      "font_class": "upload",
+      "unicode": "e662",
+      "unicode_decimal": 58978
+    },
+    {
+      "icon_id": "1920284",
+      "name": "减",
+      "font_class": "minus",
+      "unicode": "e608",
+      "unicode_decimal": 58888
+    },
+    {
+      "icon_id": "1920285",
+      "name": "加",
+      "font_class": "add",
+      "unicode": "e609",
+      "unicode_decimal": 58889
+    },
+    {
+      "icon_id": "3538385",
+      "name": "更多",
+      "font_class": "more",
+      "unicode": "e719",
+      "unicode_decimal": 59161
+    },
+    {
+      "icon_id": "4843691",
+      "name": "更多内容",
+      "font_class": "more-data",
+      "unicode": "e6a5",
+      "unicode_decimal": 59045
+    },
+    {
+      "icon_id": "5634510",
+      "name": "users",
+      "font_class": "users",
+      "unicode": "f13a",
+      "unicode_decimal": 61754
+    },
+    {
+      "icon_id": "7450652",
+      "name": "验证码",
+      "font_class": "verify",
+      "unicode": "e667",
+      "unicode_decimal": 58983
+    },
+    {
+      "icon_id": "8370794",
+      "name": "home",
+      "font_class": "home",
+      "unicode": "e60a",
+      "unicode_decimal": 58890
+    },
+    {
+      "icon_id": "8631974",
+      "name": "icon_arrow_left",
+      "font_class": "left",
+      "unicode": "e6f5",
+      "unicode_decimal": 59125
+    },
+    {
+      "icon_id": "8631976",
+      "name": "icon_arrow_right",
+      "font_class": "right",
+      "unicode": "e6f6",
+      "unicode_decimal": 59126
+    },
+    {
+      "icon_id": "8765147",
+      "name": "密码",
+      "font_class": "password",
+      "unicode": "e62b",
+      "unicode_decimal": 58923
+    },
+    {
+      "icon_id": "15838535",
+      "name": "setting",
+      "font_class": "setting",
+      "unicode": "e67d",
+      "unicode_decimal": 59005
+    },
+    {
+      "icon_id": "24571933",
+      "name": "close",
+      "font_class": "close",
+      "unicode": "e620",
+      "unicode_decimal": 58912
+    },
+    {
+      "icon_id": "29306536",
+      "name": "icon-arrow-down",
+      "font_class": "down",
+      "unicode": "e664",
+      "unicode_decimal": 58980
+    },
+    {
+      "icon_id": "29306544",
+      "name": "icon-arrow-up",
+      "font_class": "up",
+      "unicode": "e665",
+      "unicode_decimal": 58981
+    },
+    {
+      "icon_id": "32731484",
+      "name": "下载",
+      "font_class": "download",
+      "unicode": "e74b",
+      "unicode_decimal": 59211
+    },
+    {
+      "icon_id": "37226702",
+      "name": "题库管理",
+      "font_class": "tiku",
+      "unicode": "e641",
+      "unicode_decimal": 58945
+    }
+  ]
+}

@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.estudy.mappers.AnswerDetailMapper">
+
+    <!--实体映射-->
+    <resultMap id="base_result_map" type="com.estudy.entity.po.AnswerDetail">
+        <!--答题详情id-->
+        <id column="detail_id" property="detailId"/>
+        <!--考试记录id-->
+        <result column="record_id" property="recordId"/>
+        <!--题目id-->
+        <result column="question_id" property="questionId"/>
+        <!--用户答案-->
+        <result column="user_answer" property="userAnswer"/>
+        <!--0错误 1正确-->
+        <result column="is_correct" property="isCorrect"/>
+    </resultMap>
+
+
+    <!-- 通用查询结果列-->
+    <sql id="base_column_list">
+        a.detail_id
+        ,a.record_id,a.question_id,a.user_answer,a.is_correct
+    </sql>
+
+    <sql id="base_condition_filed">
+        <foreach collection="query.conditions.entrySet()" index="key" item="value" separator=" ">
+            <if test="value != null">
+                and ${key} = #{value}
+            </if>
+        </foreach>
+    </sql>
+    <!-- 通用条件列-->
+    <sql id="base_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+        </where>
+    </sql>
+
+    <!-- 通用查询条件列-->
+    <sql id="query_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+            <foreach collection="query.fuzzyConditions.entrySet()" index="key" item="value" separator=" ">
+                <if test="value != null">
+                    and ${key} like concat('%', #{value}, '%')
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <!-- 查询集合-->
+    <select id="selectList" resultMap="base_result_map">
+        SELECT
+        <include refid="base_column_list"/>
+        FROM answer_detail a
+        <include refid="query_condition"/>
+        <if test="query.orderBy!=null">
+            order by ${query.orderBy}
+        </if>
+        <if test="query.simplePage!=null">
+            limit #{query.simplePage.start},#{query.simplePage.end}
+        </if>
+    </select>
+
+    <!-- 查询数量-->
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT count(1) FROM answer_detail a
+        <include refid="query_condition"/>
+    </select>
+
+    <!-- 插入 （匹配有值的字段）-->
+    <insert id="insert" parameterType="com.estudy.entity.po.AnswerDetail">
+        <selectKey keyProperty="bean.detailId" resultType="Integer" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO answer_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.recordId != null">
+                record_id,
+            </if>
+            <if test="bean.questionId != null">
+                question_id,
+            </if>
+            <if test="bean.userAnswer != null">
+                user_answer,
+            </if>
+            <if test="bean.isCorrect != null">
+                is_correct,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.recordId!=null">
+                #{bean.recordId},
+            </if>
+            <if test="bean.questionId!=null">
+                #{bean.questionId},
+            </if>
+            <if test="bean.userAnswer!=null">
+                #{bean.userAnswer},
+            </if>
+            <if test="bean.isCorrect!=null">
+                #{bean.isCorrect},
+            </if>
+        </trim>
+    </insert>
+
+    <!-- 插入或者更新 （匹配有值的字段）-->
+    <insert id="insertOrUpdate" parameterType="com.estudy.entity.po.AnswerDetail">
+        INSERT INTO answer_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.detailId != null">
+                detail_id,
+            </if>
+            <if test="bean.recordId != null">
+                record_id,
+            </if>
+            <if test="bean.questionId != null">
+                question_id,
+            </if>
+            <if test="bean.userAnswer != null">
+                user_answer,
+            </if>
+            <if test="bean.isCorrect != null">
+                is_correct,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.detailId!=null">
+                #{bean.detailId},
+            </if>
+            <if test="bean.recordId!=null">
+                #{bean.recordId},
+            </if>
+            <if test="bean.questionId!=null">
+                #{bean.questionId},
+            </if>
+            <if test="bean.userAnswer!=null">
+                #{bean.userAnswer},
+            </if>
+            <if test="bean.isCorrect!=null">
+                #{bean.isCorrect},
+            </if>
+        </trim>
+        on DUPLICATE key update
+        <trim prefix="" suffix="" suffixOverrides=",">
+            <if test="bean.recordId!=null">
+                record_id = VALUES(record_id),
+            </if>
+            <if test="bean.questionId!=null">
+                question_id = VALUES(question_id),
+            </if>
+            <if test="bean.userAnswer!=null">
+                user_answer = VALUES(user_answer),
+            </if>
+            <if test="bean.isCorrect!=null">
+                is_correct = VALUES(is_correct),
+            </if>
+        </trim>
+    </insert>
+
+    <!-- 添加 （批量插入）-->
+    <insert id="insertBatch" parameterType="com.estudy.entity.po.AnswerDetail" useGeneratedKeys="true"
+            keyProperty="detailId">
+        INSERT INTO answer_detail(
+        record_id,
+        question_id,
+        user_answer,
+        is_correct
+        )values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.recordId},
+            #{item.questionId},
+            #{item.userAnswer},
+            #{item.isCorrect}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 批量新增修改 （批量插入）-->
+    <insert id="insertOrUpdateBatch" parameterType="com.estudy.entity.po.AnswerDetail">
+        INSERT INTO answer_detail(
+        record_id,
+        question_id,
+        user_answer,
+        is_correct
+        )values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.recordId},
+            #{item.questionId},
+            #{item.userAnswer},
+            #{item.isCorrect}
+            )
+        </foreach>
+        on DUPLICATE key update
+        record_id = VALUES(record_id),
+        question_id = VALUES(question_id),
+        user_answer = VALUES(user_answer),
+        is_correct = VALUES(is_correct)
+    </insert>
+
+    <!--多条件修改-->
+    <update id="updateByParam" parameterType="com.estudy.entity.query.QueryParams">
+        UPDATE answer_detail a
+        <set>
+            <if test="bean.recordId != null">
+                record_id = #{bean.recordId},
+            </if>
+            <if test="bean.questionId != null">
+                question_id = #{bean.questionId},
+            </if>
+            <if test="bean.userAnswer != null">
+                user_answer = #{bean.userAnswer},
+            </if>
+            <if test="bean.isCorrect != null">
+                is_correct = #{bean.isCorrect},
+            </if>
+        </set>
+        <include refid="query_condition"/>
+    </update>
+
+    <!--多条件删除-->
+    <delete id="deleteByParam">
+        delete a from answer_detail a
+        <include refid="query_condition"/>
+    </delete>
+
+    <!-- 根据DetailId修改-->
+    <update id="updateById" parameterType="com.estudy.entity.po.AnswerDetail">
+        UPDATE answer_detail
+        <set>
+            <if test="bean.recordId != null">
+                record_id = #{bean.recordId},
+            </if>
+            <if test="bean.questionId != null">
+                question_id = #{bean.questionId},
+            </if>
+            <if test="bean.userAnswer != null">
+                user_answer = #{bean.userAnswer},
+            </if>
+            <if test="bean.isCorrect != null">
+                is_correct = #{bean.isCorrect},
+            </if>
+        </set>
+        where detail_id=#{bean.detailId}
+    </update>
+
+    <!-- 根据DetailId删除-->
+    <delete id="deleteById">
+        delete
+        from answer_detail
+        where detail_id = #{id}
+    </delete>
+
+    <!-- 根据PrimaryKey获取对象-->
+    <select id="selectById" resultMap="base_result_map">
+        select
+        <include refid="base_column_list"/>
+        from answer_detail a where detail_id=#{id}
+    </select>
+
+    <!-- 查询作答详情 -->
+    <select id="selectAnswerDetails" resultType="com.estudy.entity.po.AnswerDetail">
+        SELECT
+            ad.detail_id,
+            q.question_id,
+            q.content,
+            q.answer,
+            ad.user_answer,
+            ad.is_correct,
+            q.options,
+            CASE
+                WHEN wq.wrong_id IS NOT NULL THEN 1
+                ELSE 0
+                END as inWrongList
+        FROM answer_detail ad
+                 INNER JOIN question q ON ad.question_id = q.question_id
+                 INNER JOIN exam_record er ON ad.record_id = er.record_id
+                 LEFT JOIN wrong_question wq ON q.question_id = wq.question_id AND wq.user_id = er.user_id
+        WHERE er.record_id = #{recordId}
+        ORDER BY q.question_id
+    </select>
+
+</mapper>

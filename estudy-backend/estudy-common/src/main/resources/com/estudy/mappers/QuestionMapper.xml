@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.estudy.mappers.QuestionMapper">
+
+    <!--实体映射-->
+    <resultMap id="base_result_map" type="com.estudy.entity.po.Question">
+        <!--题目id-->
+        <id column="question_id" property="questionId"/>
+        <!--所属试卷id-->
+        <result column="paper_id" property="paperId"/>
+        <!--题目类型-->
+        <result column="type" property="type"/>
+        <!--题目内容-->
+        <result column="content" property="content"/>
+        <!--1简单 2中等 3困难-->
+        <result column="difficulty" property="difficulty"/>
+        <!--选项-->
+        <result column="options" property="options"/>
+        <!--答案-->
+        <result column="answer" property="answer"/>
+        <!--题目解析-->
+        <result column="analysis" property="analysis"/>
+    </resultMap>
+
+
+    <!-- 通用查询结果列-->
+    <sql id="base_column_list">
+        q.question_id
+        ,q.paper_id,q.type,q.content,q.difficulty,
+		 q.options,q.answer,q.analysis
+    </sql>
+
+    <sql id="base_condition_filed">
+        <foreach collection="query.conditions.entrySet()" index="key" item="value" separator=" ">
+            <if test="value != null">
+                and ${key} = #{value}
+            </if>
+        </foreach>
+    </sql>
+    <!-- 通用条件列-->
+    <sql id="base_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+        </where>
+    </sql>
+
+    <!-- 通用查询条件列-->
+    <sql id="query_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+            <foreach collection="query.fuzzyConditions.entrySet()" index="key" item="value" separator=" ">
+                <if test="value != null">
+                    and ${key} like concat('%', #{value}, '%')
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <!-- 查询集合-->
+    <select id="selectList" resultMap="base_result_map">
+        SELECT
+        <include refid="base_column_list"/>
+        FROM question q
+        <include refid="query_condition"/>
+        <if test="query.orderBy!=null">
+            order by ${query.orderBy}
+        </if>
+        <if test="query.simplePage!=null">
+            limit #{query.simplePage.start},#{query.simplePage.end}
+        </if>
+    </select>
+
+    <!-- 查询数量-->
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT count(1) FROM question q
+        <include refid="query_condition"/>
+    </select>
+
+    <!-- 插入 （匹配有值的字段）-->
+    <insert id="insert" parameterType="com.estudy.entity.po.Question">
+        <selectKey keyProperty="bean.questionId" resultType="Integer" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO question
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.paperId != null">
+                paper_id,
+            </if>
+            <if test="bean.type != null">
+                type,
+            </if>
+            <if test="bean.content != null">
+                content,
+            </if>
+            <if test="bean.difficulty != null">
+                difficulty,
+            </if>
+            <if test="bean.options != null">
+                options,
+            </if>
+            <if test="bean.answer != null">
+                answer,
+            </if>
+            <if test="bean.analysis != null">
+                analysis,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.paperId!=null">
+                #{bean.paperId},
+            </if>
+            <if test="bean.type!=null">
+                #{bean.type},
+            </if>
+            <if test="bean.content!=null">
+                #{bean.content},
+            </if>
+            <if test="bean.difficulty!=null">
+                #{bean.difficulty},
+            </if>
+            <if test="bean.options!=null">
+                #{bean.options},
+            </if>
+            <if test="bean.answer!=null">
+                #{bean.answer},
+            </if>
+            <if test="bean.analysis!=null">
+                #{bean.analysis},
+            </if>
+        </trim>
+    </insert>
+
+    <!-- 插入或者更新 （匹配有值的字段）-->
+    <insert id="insertOrUpdate" parameterType="com.estudy.entity.po.Question">
+        INSERT INTO question
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.questionId != null">
+                question_id,
+            </if>
+            <if test="bean.paperId != null">
+                paper_id,
+            </if>
+            <if test="bean.type != null">
+                type,
+            </if>
+            <if test="bean.content != null">
+                content,
+            </if>
+            <if test="bean.difficulty != null">
+                difficulty,
+            </if>
+            <if test="bean.options != null">
+                options,
+            </if>
+            <if test="bean.answer != null">
+                answer,
+            </if>
+            <if test="bean.analysis != null">
+                analysis,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.questionId!=null">
+                #{bean.questionId},
+            </if>
+            <if test="bean.paperId!=null">
+                #{bean.paperId},
+            </if>
+            <if test="bean.type!=null">
+                #{bean.type},
+            </if>
+            <if test="bean.content!=null">
+                #{bean.content},
+            </if>
+            <if test="bean.difficulty!=null">
+                #{bean.difficulty},
+            </if>
+            <if test="bean.options!=null">
+                #{bean.options},
+            </if>
+            <if test="bean.answer!=null">
+                #{bean.answer},
+            </if>
+            <if test="bean.analysis!=null">
+                #{bean.analysis},
+            </if>
+        </trim>
+        on DUPLICATE key update
+        <trim prefix="" suffix="" suffixOverrides=",">
+            <if test="bean.paperId!=null">
+                paper_id = VALUES(paper_id),
+            </if>
+            <if test="bean.type!=null">
+                type = VALUES(type),
+            </if>
+            <if test="bean.content!=null">
+                content = VALUES(content),
+            </if>
+            <if test="bean.difficulty!=null">
+                difficulty = VALUES(difficulty),
+            </if>
+            <if test="bean.options!=null">
+                options = VALUES(options),
+            </if>
+            <if test="bean.answer!=null">
+                answer = VALUES(answer),
+            </if>
+            <if test="bean.analysis!=null">
+                analysis = VALUES(analysis),
+            </if>
+        </trim>
+    </insert>
+
+    <!-- 添加 （批量插入）-->
+    <insert id="insertBatch" parameterType="com.estudy.entity.po.Question" useGeneratedKeys="true"
+            keyProperty="questionId">
+        INSERT INTO question(
+        paper_id,
+        type,
+        content,
+        difficulty,
+        options,
+        answer,
+        analysis
+        )values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.paperId},
+            #{item.type},
+            #{item.content},
+            #{item.difficulty},
+            #{item.options},
+            #{item.answer},
+            #{item.analysis}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 批量新增修改 （批量插入）-->
+    <insert id="insertOrUpdateBatch" parameterType="com.estudy.entity.po.Question">
+        INSERT INTO question(
+        paper_id,
+        type,
+        content,
+        difficulty,
+        options,
+        answer,
+        analysis
+        )values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.paperId},
+            #{item.type},
+            #{item.content},
+            #{item.difficulty},
+            #{item.options},
+            #{item.answer},
+            #{item.analysis}
+            )
+        </foreach>
+        on DUPLICATE key update
+        paper_id = VALUES(paper_id),
+        type = VALUES(type),
+        content = VALUES(content),
+        difficulty = VALUES(difficulty),
+        options = VALUES(options),
+        answer = VALUES(answer),
+        analysis = VALUES(analysis)
+    </insert>
+
+    <!--多条件修改-->
+    <update id="updateByParam" parameterType="com.estudy.entity.query.QueryParams">
+        UPDATE question q
+        <set>
+            <if test="bean.paperId != null">
+                paper_id = #{bean.paperId},
+            </if>
+            <if test="bean.type != null">
+                type = #{bean.type},
+            </if>
+            <if test="bean.content != null">
+                content = #{bean.content},
+            </if>
+            <if test="bean.difficulty != null">
+                difficulty = #{bean.difficulty},
+            </if>
+            <if test="bean.options != null">
+                options = #{bean.options},
+            </if>
+            <if test="bean.answer != null">
+                answer = #{bean.answer},
+            </if>
+            <if test="bean.analysis != null">
+                analysis = #{bean.analysis},
+            </if>
+        </set>
+        <include refid="query_condition"/>
+    </update>
+
+    <!--多条件删除-->
+    <delete id="deleteByParam">
+        delete q from question q
+        <include refid="query_condition"/>
+    </delete>
+
+    <!-- 根据QuestionId修改-->
+    <update id="updateById" parameterType="com.estudy.entity.po.Question">
+        UPDATE question
+        <set>
+            <if test="bean.paperId != null">
+                paper_id = #{bean.paperId},
+            </if>
+            <if test="bean.type != null">
+                type = #{bean.type},
+            </if>
+            <if test="bean.content != null">
+                content = #{bean.content},
+            </if>
+            <if test="bean.difficulty != null">
+                difficulty = #{bean.difficulty},
+            </if>
+            <if test="bean.options != null">
+                options = #{bean.options},
+            </if>
+            <if test="bean.answer != null">
+                answer = #{bean.answer},
+            </if>
+            <if test="bean.analysis != null">
+                analysis = #{bean.analysis},
+            </if>
+        </set>
+        where question_id=#{bean.questionId}
+    </update>
+
+    <!-- 根据QuestionId删除-->
+    <delete id="deleteById">
+        delete
+        from question
+        where question_id = #{id}
+    </delete>
+
+    <!-- 根据PrimaryKey获取对象-->
+    <select id="selectById" resultMap="base_result_map">
+        select
+        <include refid="base_column_list"/>
+        from question q where question_id=#{id}
+    </select>
+
+    <!-- 查询分类下的题目信息 -->
+    <select id="selectQuestionsByParams" resultType="com.estudy.entity.vo.QuestionInfo">
+        SELECT
+            p.category_id,
+            q.question_id,
+            q.type,
+            q.content,
+            q.difficulty,
+            q.analysis,
+            COALESCE(ad_stats.answerCount, 0) as answerCount,
+            COALESCE(ad_stats.correctRate, 0) as correctRate
+        FROM question q
+            INNER JOIN paper p ON q.paper_id = p.paper_id
+            LEFT JOIN (SELECT question_id,
+                COUNT(*) as answerCount,
+                ROUND(SUM(is_correct) * 100.0 / COUNT(*), 2) as correctRate
+                FROM answer_detail
+                GROUP BY question_id) ad_stats ON q.question_id = ad_stats.question_id
+        <where>
+            <include refid="base_condition_filed"/>
+            <foreach collection="query.fuzzyConditions.entrySet()" index="key" item="value" separator=" ">
+                <if test="value != null">
+                    and ${key} like concat('%', #{value}, '%')
+                </if>
+            </foreach>
+        </where>
+        <if test="query.orderBy != null">
+            order by ${query.orderBy}
+        </if>
+        <choose>
+            <when test="query.simplePage != null">
+                limit #{query.simplePage.start}, #{query.simplePage.end}
+            </when>
+            <otherwise>
+                LIMIT 5
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectListNoPaperId" resultMap="base_result_map">
+        SELECT
+        <include refid="base_column_list"/>
+        FROM question q
+        where paper_id is null
+        limit #{start},#{end}
+    </select>
+
+    <select id="selectNoPaperIdCount" resultType="java.lang.Integer">
+        SELECT count(1) FROM question q
+        where paper_id is null
+    </select>
+
+    <update id="updatePaperIdBatch">
+        UPDATE question
+        SET paper_id = #{paperId}
+        WHERE question_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

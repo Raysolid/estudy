@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.estudy.mappers.WrongQuestionMapper">
+
+    <!--实体映射-->
+    <resultMap id="base_result_map" type="com.estudy.entity.po.WrongQuestion">
+        <!--错题id-->
+        <id column="wrong_id" property="wrongId"/>
+        <!--用户id-->
+        <result column="user_id" property="userId"/>
+        <!--题目id-->
+        <result column="question_id" property="questionId"/>
+        <!--用户错误答案-->
+        <result column="user_answer" property="userAnswer"/>
+        <!--错误时间-->
+        <result column="wrong_time" property="wrongTime"/>
+    </resultMap>
+
+
+    <!-- 通用查询结果列-->
+    <sql id="base_column_list">
+        w.wrong_id
+        ,w.user_id,w.question_id,w.user_answer,w.wrong_time
+
+    </sql>
+
+    <sql id="base_condition_filed">
+		<foreach collection="query.conditions.entrySet()" index="key" item="value" separator=" ">
+			<if test="value != null">
+				and ${key} = #{value}
+			</if>
+		</foreach>
+    </sql>
+    <!-- 通用条件列-->
+    <sql id="base_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+        </where>
+    </sql>
+
+    <!-- 通用查询条件列-->
+    <sql id="query_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+			<foreach collection="query.fuzzyConditions.entrySet()" index="key" item="value" separator=" ">
+				<if test="value != null">
+					and ${key} like concat('%', #{value}, '%')
+				</if>
+			</foreach>
+        </where>
+    </sql>
+
+    <!-- 查询集合-->
+    <select id="selectList" resultMap="base_result_map">
+        SELECT
+        <include refid="base_column_list"/>
+        FROM wrong_question w
+        <include refid="query_condition"/>
+        <if test="query.orderBy!=null">
+            order by ${query.orderBy}
+        </if>
+        <if test="query.simplePage!=null">
+            limit #{query.simplePage.start},#{query.simplePage.end}
+        </if>
+    </select>
+
+    <!-- 查询数量-->
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT count(1) FROM wrong_question w
+        <include refid="query_condition"/>
+    </select>
+
+    <!-- 插入 （匹配有值的字段）-->
+    <insert id="insert" parameterType="com.estudy.entity.po.WrongQuestion">
+        <selectKey keyProperty="bean.wrongId" resultType="Integer" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO wrong_question
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.userId != null">
+                user_id,
+            </if>
+            <if test="bean.questionId != null">
+                question_id,
+            </if>
+            <if test="bean.userAnswer != null">
+                user_answer,
+            </if>
+            <if test="bean.wrongTime != null">
+                wrong_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.userId!=null">
+                #{bean.userId},
+            </if>
+            <if test="bean.questionId!=null">
+                #{bean.questionId},
+            </if>
+            <if test="bean.userAnswer!=null">
+                #{bean.userAnswer},
+            </if>
+            <if test="bean.wrongTime!=null">
+                #{bean.wrongTime},
+            </if>
+        </trim>
+    </insert>
+
+    <!-- 插入或者更新 （匹配有值的字段）-->
+    <insert id="insertOrUpdate" parameterType="com.estudy.entity.po.WrongQuestion">
+        INSERT INTO wrong_question
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.wrongId != null">
+                wrong_id,
+            </if>
+            <if test="bean.userId != null">
+                user_id,
+            </if>
+            <if test="bean.questionId != null">
+                question_id,
+            </if>
+            <if test="bean.userAnswer != null">
+                user_answer,
+            </if>
+            <if test="bean.wrongTime != null">
+                wrong_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.wrongId!=null">
+                #{bean.wrongId},
+            </if>
+            <if test="bean.userId!=null">
+                #{bean.userId},
+            </if>
+            <if test="bean.questionId!=null">
+                #{bean.questionId},
+            </if>
+            <if test="bean.userAnswer!=null">
+                #{bean.userAnswer},
+            </if>
+            <if test="bean.wrongTime!=null">
+                #{bean.wrongTime},
+            </if>
+        </trim>
+        on DUPLICATE key update
+        <trim prefix="" suffix="" suffixOverrides=",">
+            <if test="bean.userId!=null">
+                user_id = VALUES(user_id),
+            </if>
+            <if test="bean.questionId!=null">
+                question_id = VALUES(question_id),
+            </if>
+            <if test="bean.userAnswer!=null">
+                user_answer = VALUES(user_answer),
+            </if>
+            <if test="bean.wrongTime!=null">
+                wrong_time = VALUES(wrong_time),
+            </if>
+        </trim>
+    </insert>
+
+    <!-- 添加 （批量插入）-->
+    <insert id="insertBatch" parameterType="com.estudy.entity.po.WrongQuestion" useGeneratedKeys="true"
+            keyProperty="wrongId">
+        INSERT INTO wrong_question(
+        user_id,
+        question_id,
+        user_answer,
+        wrong_time
+        )values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.userId},
+            #{item.questionId},
+            #{item.userAnswer},
+            #{item.wrongTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 批量新增修改 （批量插入）-->
+    <insert id="insertOrUpdateBatch" parameterType="com.estudy.entity.po.WrongQuestion">
+        INSERT INTO wrong_question(
+        user_id,
+        question_id,
+        user_answer,
+        wrong_time
+        )values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.userId},
+            #{item.questionId},
+            #{item.userAnswer},
+            #{item.wrongTime}
+            )
+        </foreach>
+        on DUPLICATE key update
+        user_id = VALUES(user_id),
+        question_id = VALUES(question_id),
+        user_answer = VALUES(user_answer),
+        wrong_time = VALUES(wrong_time)
+    </insert>
+
+    <!--多条件修改-->
+    <update id="updateByParam" parameterType="com.estudy.entity.query.QueryParams">
+        UPDATE wrong_question w
+        <set>
+            <if test="bean.userId != null">
+                user_id = #{bean.userId},
+            </if>
+            <if test="bean.questionId != null">
+                question_id = #{bean.questionId},
+            </if>
+            <if test="bean.userAnswer != null">
+                user_answer = #{bean.userAnswer},
+            </if>
+            <if test="bean.wrongTime != null">
+                wrong_time = #{bean.wrongTime},
+            </if>
+        </set>
+        <include refid="query_condition"/>
+    </update>
+
+    <!--多条件删除-->
+    <delete id="deleteByParam">
+        delete w from wrong_question w
+        <include refid="query_condition"/>
+    </delete>
+
+    <!-- 根据WrongId修改-->
+    <update id="updateById" parameterType="com.estudy.entity.po.WrongQuestion">
+        UPDATE wrong_question
+        <set>
+            <if test="bean.userId != null">
+                user_id = #{bean.userId},
+            </if>
+            <if test="bean.questionId != null">
+                question_id = #{bean.questionId},
+            </if>
+            <if test="bean.userAnswer != null">
+                user_answer = #{bean.userAnswer},
+            </if>
+            <if test="bean.wrongTime != null">
+                wrong_time = #{bean.wrongTime},
+            </if>
+        </set>
+        where wrong_id=#{bean.wrongId}
+    </update>
+
+    <!-- 根据WrongId删除-->
+    <delete id="deleteById">
+        delete
+        from wrong_question
+        where wrong_id = #{id}
+    </delete>
+
+    <!-- 根据PrimaryKey获取对象-->
+    <select id="selectById" resultMap="base_result_map">
+        select
+        <include refid="base_column_list"/>
+        from wrong_question w where wrong_id=#{id}
+    </select>
+
+    <!-- 查询错题列表 -->
+    <select id="selectWrongQuestionList" resultType="com.estudy.entity.vo.WrongQuestionInfo">
+        SELECT
+            wq.wrong_id,
+            q.question_id,
+            p.name,
+            q.content,
+            <if test="showDetail">
+                q.type,
+                q.difficulty,
+                q.answer,
+                wq.user_answer,
+            </if>
+            wq.wrong_time
+        FROM wrong_question wq
+                 INNER JOIN question q ON wq.question_id = q.question_id
+                 INNER JOIN paper p ON q.paper_id = p.paper_id
+        WHERE wq.user_id = #{userId}
+        <choose>
+            <when test="showDetail">
+                ORDER BY wq.wrong_id DESC
+                LIMIT #{page.start}, #{page.end}
+            </when>
+            <otherwise>
+                ORDER BY wq.wrong_time DESC
+                LIMIT 5
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--  通过id查询错题  -->
+    <select id="selectWrongQuestionById" resultType="com.estudy.entity.vo.WrongQuestionInfo">
+        SELECT
+            wq.wrong_id,
+            q.question_id,
+            p.name,
+            q.content,
+            q.type,
+            q.difficulty,
+            q.options,
+            q.analysis,
+            q.answer,
+            wq.user_answer,
+            wq.wrong_time
+        FROM wrong_question wq
+                 INNER JOIN question q ON wq.question_id = q.question_id
+                 INNER JOIN paper p ON q.paper_id = p.paper_id
+        WHERE q.question_id = #{questionId}
+    </select>
+
+</mapper>

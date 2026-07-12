@@ -1,0 +1,88 @@
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #efefef;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+::-webkit-scrollbar-corner {
+  background: #bfbfbf;
+}
+
+:root {
+  --text1: #9499a0;
+  --text2: #61666d;
+  --icon: #9499a0;
+  --text-link: #409eff;
+  --blue: #007fff;
+  --tag: #7bcdef;
+  --pink: #ff6699;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: #636d7e;
+  font-size: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.a-link {
+  text-decoration: none;
+  color: var(--blue);
+}
+
+.top-panel {
+  .el-card__body {
+    padding: 15px;
+  }
+
+  .el-form-item {
+    margin-bottom: 0;
+  }
+}
+
+.row-op-panel {
+  a {
+    margin-right: 8px;
+    color: var(--blue);
+    text-decoration: none;
+  }
+
+  a:last-child {
+    margin-right: 0;
+  }
+
+  .not-allow {
+    text-decoration: none;
+    color: #ddd;
+    cursor: not-allowed;
+  }
+}
+
+.table-data-card {
+  margin-top: 10px;
+
+  .el-card__body {
+    padding: 10px;
+  }
+}
+
+.el-form-item__content {
+  width: 100%;
+}

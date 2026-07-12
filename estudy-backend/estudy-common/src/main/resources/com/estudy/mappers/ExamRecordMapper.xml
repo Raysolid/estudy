@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.estudy.mappers.ExamRecordMapper">
+
+    <!--实体映射-->
+    <resultMap id="base_result_map" type="com.estudy.entity.po.ExamRecord">
+        <!--考试记录id-->
+        <id column="record_id" property="recordId"/>
+        <!--用户id-->
+        <result column="user_id" property="userId"/>
+        <!--试卷id-->
+        <result column="paper_id" property="paperId"/>
+        <!--得分-->
+        <result column="score" property="score"/>
+        <!--考试用时-->
+        <result column="duration" property="duration"/>
+        <!--开始时间-->
+        <result column="start_time" property="startTime"/>
+    </resultMap>
+
+
+    <!-- 通用查询结果列-->
+    <sql id="base_column_list">
+        e.record_id
+        ,e.user_id,e.paper_id,e.score,e.duration,
+		 e.start_time
+    </sql>
+
+    <sql id="base_condition_filed">
+		<foreach collection="query.conditions.entrySet()" index="key" item="value" separator=" ">
+			<if test="value != null">
+				and ${key} = #{value}
+			</if>
+		</foreach>
+    </sql>
+    <!-- 通用条件列-->
+    <sql id="base_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+        </where>
+    </sql>
+
+    <!-- 通用查询条件列-->
+    <sql id="query_condition">
+        <where>
+            <include refid="base_condition_filed"/>
+			<foreach collection="query.fuzzyConditions.entrySet()" index="key" item="value" separator=" ">
+				<if test="value != null">
+					and ${key} like concat('%', #{value}, '%')
+				</if>
+			</foreach>
+            <if test="query.startTime != null and query.startTime != ''">
+                <![CDATA[ and  e.start_time >= str_to_date(#{query.startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                <![CDATA[ and  e.start_time < date_sub(str_to_date(#{query.endTime},'%Y-%m-%d'),interval -1 day) ]]>
+            </if>
+        </where>
+    </sql>
+
+    <!-- 查询集合-->
+    <select id="selectList" resultMap="base_result_map">
+        SELECT
+        <include refid="base_column_list"/>
+        FROM exam_record e
+        <include refid="query_condition"/>
+        <if test="query.orderBy!=null">
+            order by ${query.orderBy}
+        </if>
+        <if test="query.simplePage!=null">
+            limit #{query.simplePage.start},#{query.simplePage.end}
+        </if>
+    </select>
+
+    <!-- 查询数量-->
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT count(1) FROM exam_record e
+        <include refid="query_condition"/>
+    </select>
+
+    <!-- 插入 （匹配有值的字段）-->
+    <insert id="insert" parameterType="com.estudy.entity.po.ExamRecord">
+        <selectKey keyProperty="bean.recordId" resultType="Integer" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO exam_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.userId != null">
+                user_id,
+            </if>
+            <if test="bean.paperId != null">
+                paper_id,
+            </if>
+            <if test="bean.score != null">
+                score,
+            </if>
+            <if test="bean.duration != null">
+                duration,
+            </if>
+            <if test="bean.startTime != null">
+                start_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.userId!=null">
+                #{bean.userId},
+            </if>
+            <if test="bean.paperId!=null">
+                #{bean.paperId},
+            </if>
+            <if test="bean.score!=null">
+                #{bean.score},
+            </if>
+            <if test="bean.duration!=null">
+                #{bean.duration},
+            </if>
+            <if test="bean.startTime!=null">
+                #{bean.startTime},
+            </if>
+        </trim>
+    </insert>
+
+    <!-- 插入或者更新 （匹配有值的字段）-->
+    <insert id="insertOrUpdate" parameterType="com.estudy.entity.po.ExamRecord">
+        INSERT INTO exam_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.recordId != null">
+                record_id,
+            </if>
+            <if test="bean.userId != null">
+                user_id,
+            </if>
+            <if test="bean.paperId != null">
+                paper_id,
+            </if>
+            <if test="bean.score != null">
+                score,
+            </if>
+            <if test="bean.duration != null">
+                duration,
+            </if>
+            <if test="bean.startTime != null">
+                start_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.recordId!=null">
+                #{bean.recordId},
+            </if>
+            <if test="bean.userId!=null">
+                #{bean.userId},
+            </if>
+            <if test="bean.paperId!=null">
+                #{bean.paperId},
+            </if>
+            <if test="bean.score!=null">
+                #{bean.score},
+            </if>
+            <if test="bean.duration!=null">
+                #{bean.duration},
+            </if>
+            <if test="bean.startTime!=null">
+                #{bean.startTime},
+            </if>
+        </trim>
+        on DUPLICATE key update
+        <trim prefix="" suffix="" suffixOverrides=",">
+            <if test="bean.userId!=null">
+                user_id = VALUES(user_id),
+            </if>
+            <if test="bean.paperId!=null">
+                paper_id = VALUES(paper_id),
+            </if>
+            <if test="bean.score!=null">
+                score = VALUES(score),
+            </if>
+            <if test="bean.duration!=null">
+                duration = VALUES(duration),
+            </if>
+            <if test="bean.startTime!=null">
+                start_time = VALUES(start_time),
+            </if>
+        </trim>
+    </insert>
+
+    <!-- 添加 （批量插入）-->
+    <insert id="insertBatch" parameterType="com.estudy.entity.po.ExamRecord" useGeneratedKeys="true"
+            keyProperty="recordId">
+        INSERT INTO exam_record(
+        user_id,
+        paper_id,
+        score,
+        duration,
+        start_time
+        )values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.userId},
+            #{item.paperId},
+            #{item.score},
+            #{item.duration},
+            #{item.startTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 批量新增修改 （批量插入）-->
+    <insert id="insertOrUpdateBatch" parameterType="com.estudy.entity.po.ExamRecord">
+        INSERT INTO exam_record(
+        user_id,
+        paper_id,
+        score,
+        duration,
+        start_time
+        )values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.userId},
+            #{item.paperId},
+            #{item.score},
+            #{item.duration},
+            #{item.startTime}
+            )
+        </foreach>
+        on DUPLICATE key update
+        user_id = VALUES(user_id),
+        paper_id = VALUES(paper_id),
+        score = VALUES(score),
+        duration = VALUES(duration),
+        start_time = VALUES(start_time)
+    </insert>
+
+    <!--多条件修改-->
+    <update id="updateByParam" parameterType="com.estudy.entity.query.QueryParams">
+        UPDATE exam_record e
+        <set>
+            <if test="bean.userId != null">
+                user_id = #{bean.userId},
+            </if>
+            <if test="bean.paperId != null">
+                paper_id = #{bean.paperId},
+            </if>
+            <if test="bean.score != null">
+                score = #{bean.score},
+            </if>
+            <if test="bean.duration != null">
+                duration = #{bean.duration},
+            </if>
+            <if test="bean.startTime != null">
+                start_time = #{bean.startTime},
+            </if>
+        </set>
+        <include refid="query_condition"/>
+    </update>
+
+    <!--多条件删除-->
+    <delete id="deleteByParam">
+        delete e from exam_record e
+        <include refid="query_condition"/>
+    </delete>
+
+    <!-- 根据RecordId修改-->
+    <update id="updateById" parameterType="com.estudy.entity.po.ExamRecord">
+        UPDATE exam_record
+        <set>
+            <if test="bean.userId != null">
+                user_id = #{bean.userId},
+            </if>
+            <if test="bean.paperId != null">
+                paper_id = #{bean.paperId},
+            </if>
+            <if test="bean.score != null">
+                score = #{bean.score},
+            </if>
+            <if test="bean.duration != null">
+                duration = #{bean.duration},
+            </if>
+            <if test="bean.startTime != null">
+                start_time = #{bean.startTime},
+            </if>
+        </set>
+        where record_id=#{bean.recordId}
+    </update>
+
+    <!-- 根据RecordId删除-->
+    <delete id="deleteById">
+        delete
+        from exam_record
+        where record_id = #{id}
+    </delete>
+
+    <!-- 根据PrimaryKey获取对象-->
+    <select id="selectById" resultMap="base_result_map">
+        select
+        <include refid="base_column_list"/>
+        from exam_record e where record_id=#{id}
+    </select>
+
+    <!-- 根据userId获取考试记录 -->
+    <select id="selectRecordsByParams" resultType="com.estudy.entity.vo.ExamReport">
+        SELECT
+            e.user_id,
+            e.record_id,
+            e.score,
+            e.duration,
+            e.start_time,
+            p.name,
+            p.description,
+            p.total_score,
+            p.question_count
+        FROM exam_record e
+                 INNER JOIN paper p ON e.paper_id = p.paper_id
+        <include refid="query_condition"/>
+        ORDER BY e.start_time DESC
+        <choose>
+            <when test="page != null">
+                LIMIT #{page.start}, #{page.end}
+            </when>
+            <otherwise>
+                LIMIT 3
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据id查询考试记录详情 -->
+    <select id="selectRecordById" resultType="com.estudy.entity.vo.ExamReport">
+        SELECT
+            er.record_id,
+            er.user_id,
+            er.paper_id,
+            er.score,
+            er.duration,
+            er.start_time,
+            p.name,
+            p.description,
+            p.question_count,
+            p.total_score,
+            p.tag,
+            p.points_required,
+            p.category_id
+        FROM exam_record er
+                 INNER JOIN paper p ON er.paper_id = p.paper_id
+        WHERE er.record_id = #{recordId}
+    </select>
+
+    <select id="selectStatsCount" resultType="java.util.Map">
+        SELECT
+            COUNT(1) as totalExamCount,
+            SUM(CASE WHEN score >= 60 THEN 1 ELSE 0 END) as passCount,
+            ROUND(CASE
+                WHEN COUNT(*) = 0 THEN 0
+                ELSE SUM(CASE WHEN score >= 60 THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+                END, 2
+            ) as passRate
+        FROM exam_record
+    </select>
+
+</mapper>

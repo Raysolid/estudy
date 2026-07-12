@@ -1,0 +1,153 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录"
+			}
+		},
+		{
+			"path": "pages/category/category",
+			"style": {
+				"navigationBarTitleText": "分类"
+			}
+		},
+		{
+			"path": "pages/wrong/wrong",
+			"style": {
+				"navigationBarTitleText": "错题"
+			}
+		},
+		{
+			"path": "pages/my/my",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
+		},
+		{
+			"path": "pages/exam/paper-detail",
+			"style": {
+				"navigationBarTitleText": "试卷详情"
+			}
+		},
+		{
+			"path": "pages/exam/question",
+			"style": {
+				"navigationBarTitleText": "答题"
+			}
+		},
+		{
+			"path": "pages/wrong/wrong-detail",
+			"style": {
+				"navigationBarTitleText": "错题详情"
+			}
+		},
+		{
+			"path": "pages/report/report",
+			"style": {
+				"navigationBarTitleText": "学习记录"
+			}
+		},
+		{
+			"path": "pages/report/report-detail",
+			"style": {
+				"navigationBarTitleText": "考试结果"
+			}
+		},
+		{
+			"path": "pages/category/search",
+			"style": {
+				"navigationBarTitleText": "搜索"
+			}
+		},
+		{
+			"path": "pages/my/edit",
+			"style": {
+				"navigationBarTitleText": "编辑资料"
+			}
+		},
+		{
+			"path": "pages/my/changePassword",
+			"style": {
+				"navigationBarTitleText": "修改密码"
+			}
+		},
+		{
+			"path" : "pages/category/paperlist",
+			"style" : 
+			{
+				"navigationBarTitleText" : "试卷列表"
+			}
+		},
+		{
+			"path": "pages/agent/agent",
+			"style": {
+				"navigationBarTitleText": "智能批题"
+			}
+		},
+		{
+			"path" : "pages/agent/result",
+			"style" : 
+			{
+				"navigationBarTitleText" : "批改结果"
+			}
+		},
+		{
+			"path" : "pages/question/detail",
+			"style" : 
+			{
+				"navigationBarTitleText" : "题目详情"
+			}
+		}
+	],
+	"tabBar": {
+		"color": "#8a8a8a",
+		"selectedColor": "#1296db",
+		"height": "60px",
+		"list": [{
+				"pagePath": "pages/index/index",
+				"iconPath": "/static/images/home.png",
+				"selectedIconPath": "/static/images/home_selected.png",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/category/category",
+				"iconPath": "/static/images/category.png",
+				"selectedIconPath": "/static/images/category_selected.png",
+				"text": "分类"
+			},
+			{
+				"pagePath": "pages/agent/agent",
+				"iconPath": "/static/images/agent.png",
+				"selectedIconPath": "/static/images/agent_selected.png",
+				"text": "AI"
+			},
+			{
+				"pagePath": "pages/my/my",
+				"iconPath": "/static/images/my.png",
+				"selectedIconPath": "/static/images/my_selected.png",
+				"text": "我的"
+			}
+		]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+		// "navigationStyle": "custom",
+		// "app-plus": {
+		// 	"titleView": false, // 隐藏标题栏（App端）
+		// 	"statusbar": {
+		// 		"immersed": true // 沉浸式状态栏（App端）
+		// 	}
+		// }
+	},
+	"uniIdRouter": {}
+}

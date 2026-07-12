@@ -1,0 +1,24 @@
+# 简历文件
+简历项目经历.md
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build output
+**/target/
+
+# IDE
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
