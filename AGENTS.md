@@ -1,16 +1,16 @@
 # AGENTS.md
 
-## Project
+## 项目
 
 Estudy — 在线学习考试系统，支持移动端（uni-app）和 Web 管理后台。
 
-## Stack
+## 技术栈
 
 Spring Boot 3.5 + MyBatis + MySQL + Redis（Java 17）
 Vue 3 + Pinia（移动端）
 Vue 3 + Element Plus（管理后台）
 
-## Repository
+## 目录结构
 
 ```
 estudy-backend/     后端 Maven 多模块
@@ -22,7 +22,7 @@ estudy-admin/       管理后台 Vue 3
 docs/               文档
 ```
 
-## General Rules
+## 基本规则
 
 - 不要把 `.env` 提交到 Git
 - 不要在代码中硬编码密码/密钥/Token
@@ -30,7 +30,7 @@ docs/               文档
 - 修改后手动验证功能，提交前确认编译通过
 - 保持改动最小化，遵循现有模式
 
-## Build
+## 构建
 
 ```bash
 # 后端编译
@@ -49,9 +49,9 @@ cd estudy-front && npm install && npm run dev:h5
 cd estudy-admin && npm install && npm run dev
 ```
 
-## Documentation
+## 文档
 
 编码规范: docs/coding-style.md
-后端模块: estudy-backend/AGENTS.md
-移动端: estudy-front/AGENTS.md
-管理后台: estudy-admin/AGENTS.md
+后端模块: docs/backend.md
+移动端: docs/mobile.md
+管理后台: docs/admin.md

@@ -1,4 +1,4 @@
-# Backend Module
+# 后端模块规范
 
 ## 模块结构
 
@@ -43,22 +43,16 @@ cd estudy-admin && mvn spring-boot:run
 | `service/` + `impl/` | Service 接口与实现 |
 | `utils/` | 工具类（`StrUtils`, `RedisUtils`, `MailUtils`） |
 
-## Do's and Don'ts
-
-### Do
+## 必须做
 
 - Controller 用 `@GlobalInterceptor` 标注权限（`checkLogin`/`checkAdmin`）
 - ServiceImpl 方法加 `@Transactional(rollbackFor = Exception.class)`
 - 异步任务用 `@Async("cozeTaskExecutor")`
 - 日期用 `java.util.Date` + `@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss", timezone="GMT+8")`
 
-### Don't
+## 禁止做
 
 - 不要在 Controller 里写业务逻辑
 - 不要使用 `@Autowired`
 - 不要直接返回错误码，用 `BusinessException`
 - 不要在代码中硬编码密码/密钥
-
-## 编码规范
-
-详见 @docs/coding-style.md

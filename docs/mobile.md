@@ -1,4 +1,4 @@
-# Mobile Module (uni-app)
+# 移动端模块规范（uni-app）
 
 ## 技术栈
 
@@ -22,16 +22,14 @@ static/        # 静态资源
 uni_modules/   # 内置组件
 ```
 
-## Do's and Don'ts
-
-### Do
+## 必须做
 
 - 请求统一走 `utils/request.js`，通过 `utils/api.js` 配置基础 URL
 - 路由拦截在 `utils/permission.js`，自动检查登录状态
 - 使用 `uni_modules/` 下的内置组件（uni-forms, uni-popup 等）
 - 页面样式用 scoped，全局变量用 `uni.scss`
 
-### Don't
+## 禁止做
 
 - **禁止**直接调用 `uni.request`
 - **禁止**在页面中硬编码 API 地址

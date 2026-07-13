@@ -1,4 +1,4 @@
-# Admin Panel Module
+# 管理后台模块规范
 
 ## 技术栈
 
@@ -23,16 +23,14 @@ src/
 └── main.js        # 入口
 ```
 
-## Do's and Don'ts
-
-### Do
+## 必须做
 
 - 请求统一走 `src/utils/Request.js`，通过 `src/utils/Api.js` 配置基础 URL
 - 页面用 PascalCase 命名（`UserList.vue`、`Paper.vue`）
 - 表单弹窗用 Element Plus 的 `el-dialog`
 - 富文本编辑用 SunEditor（`@sun-editor/vue-edit`）
 
-### Don't
+## 禁止做
 
 - **禁止**直接调用 `axios`
 - **禁止**在页面中硬编码 API 地址
