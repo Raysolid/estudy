@@ -1,13 +1,13 @@
 # Estudy AI 集成改进设计方案
 
-> 基于技术评审反馈的全面改进版，版本 2.0
+> 基于技术评审反馈的全面改进版，版本 2.1
 
 ---
 
 ## 目录
 
 1. [架构总览](#一架构总览)
-2. [独立 AI 模块设计](#二独立-ai-模块设计)
+2. [模型选型与成本控制](#二模型选型与成本控制)
 3. [Provider Gateway 架构](#三provider-gateway-架构)
 4. [积分计费订单机制](#四积分计费订单机制)
 5. [Tool 安全上下文与权限模型](#五tool-安全上下文与权限模型)
@@ -17,8 +17,9 @@
 9. [限流与稳定性](#九限流与稳定性)
 10. [数据库设计](#十数据库设计)
 11. [安全设计](#十一安全设计)
-12. [可观测性](#十二可观测性)
-13. [实施计划](#十三实施计划)
+12. [AI 业务场景设计](#十二ai-业务场景设计)
+13. [可观测性](#十三可观测性)
+14. [实施计划](#十四实施计划)
 
 ---
 
@@ -116,7 +117,76 @@ estudy-admin   (管理端API，注入AI服务)
 
 ---
 
-## 二、Provider Gateway 架构
+## 二、模型选型与成本控制
+
+### 2.1 模型选型策略
+
+> 🎯 **核心原则：DeepSeek 作为主力模型，Spring AI 统一抽象，按场景路由**
+
+| 场景 | 推荐模型 | 原因 | 参考成本 |
+|---|---|---|---|
+| 日常问答/答疑 | DeepSeek-V3 | 国产最优性价比 | ~$0.14/M tokens |
+| 题目生成 | DeepSeek-R1 | 推理能力强 | 按需调用 |
+| 图片批改（视觉） | 通义千问 VL | 国内合规，视觉能力强 | — |
+| 主观题评分 | DeepSeek-V3 / GPT-4o | 结构化输出稳定 | — |
+| Embedding | text-embedding-3-small | 便宜且效果好 | — |
+| 复杂工作流批改 | Coze API | 可视化编排，保留价值高 | — |
+
+### 2.2 成本控制建议
+
+```yaml
+ai:
+  cost-control:
+    daily-budget: 10000        # 每日预算上限（积分）
+    max-tokens-per-call: 4096  # 单次调用最大 token 数
+    stream-timeout: 60s        # 流式输出超时自动中断
+    off-peak-switch: true      # 低峰时段自动切换更便宜的模型
+```
+
+**成本优化策略：**
+
+1. **场景路由**：简单问题用轻量模型，复杂问题用强模型
+2. **缓存策略**：相同问题命中缓存直接返回，不重复调用
+3. **批量处理**：题目生成等非实时场景，批量调用降低单价
+4. **Prompt 优化**：精简系统提示词，减少每次调用的 token 消耗
+5. **结果缓存**：批改结果缓存，同一试卷不重复批改
+
+### 2.3 模型路由策略
+
+```java
+@Component
+public class AiModelRouter {
+
+    public ModelRoute route(AiCapability capability, AiRequest request) {
+        return switch (capability) {
+            case CHAT -> ModelRoute.builder()
+                .provider("deepseek").model("deepseek-chat")
+                .temperature(0.5).maxTokens(2048).build();
+
+            case GRADING -> request.hasImage()
+                ? ModelRoute.builder().provider("qwen").model("qwen-vl-max")
+                    .temperature(0.1).build()
+                : ModelRoute.builder().provider("deepseek").model("deepseek-chat")
+                    .temperature(0.1).build();
+
+            case QUESTION_GENERATE -> ModelRoute.builder()
+                .provider("deepseek").model("deepseek-reasoner")
+                .temperature(0.7).build();
+
+            case RAG -> ModelRoute.builder()
+                .provider("deepseek").model("deepseek-chat")
+                .temperature(0.2).build();
+
+            case EMBEDDING -> ModelRoute.builder()
+                .provider("openai").model("text-embedding-3-small").build();
+        };
+    }
+}
+```
+
+---
+
+## 三、Provider Gateway 架构
 
 ### 2.1 设计原则
 
@@ -307,18 +377,96 @@ ai:
       rollout-percent: 0
 
   providers:
+    deepseek:
+      api-key: ${DEEPSEEK_API_KEY:}
+      base-url: https://api.deepseek.com
+      chat-model: deepseek-chat
+      reasoner-model: deepseek-reasoner
     openai:
       api-key: ${OPENAI_API_KEY:}
       base-url: ${OPENAI_BASE_URL:}
       model: ${OPENAI_MODEL:gpt-4o}
+      embedding-model: text-embedding-3-small
+    qwen:
+      api-key: ${QWEN_API_KEY:}
+      base-url: https://dashscope.aliyuncs.com
+      model: qwen-vl-max
     coze:
       token: ${COZE_TOKEN:}
       workflow-id: ${COZE_WORKFLOW_ID:}
 ```
 
+### 3.7 Prompt 模板管理
+
+**目录结构：**
+
+```
+estudy-ai/src/main/resources/prompts/
+├── correction/
+│   ├── math_correction.st        # 数学批改模板
+│   ├── english_correction.st     # 英语批改模板
+│   └── general_correction.st     # 通用批改模板
+├── generation/
+│   ├── single_choice.st          # 单选题生成
+│   ├── fill_blank.st             # 填空题生成
+│   └── essay.st                  # 主观题生成
+├── assistant/
+│   ├── study_assistant.st        # 学习助手系统提示词
+│   └── wrong_question_explain.st # 错题讲解模板
+└── rag/
+    └── knowledge_qa.st           # 知识库问答模板
+```
+
+**模板加载器：**
+
+```java
+@Component
+public class PromptTemplateLoader {
+
+    private final ResourcePatternResolver resourceLoader;
+
+    public PromptTemplateLoader(ResourcePatternResolver resourceLoader) {
+        this.resourceLoader = resourceLoader;
+    }
+
+    public String load(String templatePath) {
+        try {
+            Resource resource = resourceLoader.getResource("classpath:prompts/" + templatePath);
+            return resource.getContentAsString(StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new AiException("加载Prompt模板失败: " + templatePath, e);
+        }
+    }
+
+    public PromptTemplate loadWithVariables(String templatePath, Map<String, Object> variables) {
+        String template = load(templatePath);
+        return new PromptTemplate(template, variables);
+    }
+}
+```
+
+**结构化输出（避免 JSON 解析混乱）：**
+
+```java
+// 定义结构化输出类型
+public record CorrectionResult(
+    int score,
+    int totalScore,
+    String feedback,
+    List<String> errorPoints,
+    List<String> suggestions
+) {}
+
+// 使用 Spring AI BeanOutputConverter 强制结构化
+CorrectionResult result = chatClient.prompt()
+    .user(userPrompt)
+    .call()
+    .entity(CorrectionResult.class);  // 自动解析为对象
+```
+
 ---
 
-## 三、积分计费订单机制
+## 四、积分计费订单机制
 
 ### 3.1 订单状态机
 
@@ -500,7 +648,7 @@ public class AiBillingAdvisor implements CallAdvisor {
 
 ---
 
-## 四、Tool 安全上下文与权限模型
+## 五、Tool 安全上下文与权限模型
 
 ### 4.1 核心原则
 
@@ -652,7 +800,7 @@ public class WrongQuestionTool {
 
 ---
 
-## 五、多阶段智能批改流水线
+## 六、多阶段智能批改流水线
 
 ### 5.1 流水线架构
 
@@ -899,7 +1047,7 @@ public class ResultValidator {
 
 ---
 
-## 六、对话记忆与流式接口
+## 七、对话记忆与流式接口
 
 ### 6.1 对话记忆分层
 
@@ -1017,7 +1165,7 @@ public class AiChatController {
 
 ---
 
-## 七、RAG 增强方案
+## 八、RAG 增强方案
 
 ### 7.1 文档解析策略
 
@@ -1166,7 +1314,7 @@ public record Citation(
 
 ---
 
-## 八、限流与稳定性
+## 九、限流与稳定性
 
 ### 8.1 三层限流
 
@@ -1222,7 +1370,7 @@ ai:
 
 ---
 
-## 九、数据库设计
+## 十、数据库设计
 
 ### 9.1 积分使用订单表
 
@@ -1363,7 +1511,7 @@ CREATE TABLE ai_knowledge_document (
 
 ---
 
-## 十、安全设计
+## 十一、安全设计
 
 ### 10.1 Prompt Injection 防护
 
@@ -1505,7 +1653,7 @@ public class FileSecurityValidator {
 
 ---
 
-## 十一、可观测性
+## 十三、可观测性
 
 ### 11.1 核心指标
 
@@ -1570,44 +1718,132 @@ public class AiMetrics {
 
 ---
 
-## 十二、实施计划
+## 十二、AI 业务场景设计
 
-### 12.1 分阶段实施
+### 12.1 智能批改（P0）
+
+**现状**：依赖 Coze 工作流，图片识别 + AI 批改
+
+**增强方案**：
+
+```
+用户提交答题图片
+       │
+       ▼
+┌─────────────────┐
+│  图片预处理      │  ← Spring AI multimodal（支持视觉模型）
+│  (Vision模型识别)│
+└────────┬────────┘
+         │ 识别出文字答案
+         ▼
+┌─────────────────┐
+│  批改评分        │  ← 结合题目标准答案 + Prompt 模板
+│  (Chat模型)     │    返回结构化 JSON（得分、批注）
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  错误分析        │  ← RAG 检索相关知识点
+│  (知识关联)      │
+└─────────────────┘
+```
+
+### 12.2 AI 题目生成（P0）
+
+```java
+public interface QuestionGenerateService {
+    // 根据知识点生成题目
+    List<Question> generateByKnowledgePoint(String subject,
+                                             String topic,
+                                             QuestionType type,
+                                             int count);
+    // 根据错题本针对性生成练习
+    List<Question> generateByWrongQuestions(List<WrongQuestion> wrongList);
+
+    // 根据试卷难度分布生成
+    List<Question> generateByDifficulty(DifficultyConfig config);
+}
+```
+
+### 12.3 AI 学习助手 / 答疑（P1）
+
+**设计要点：**
+
+1. 多轮对话 + 会话记忆（MessageChatMemoryAdvisor）
+2. 上下文携带当前科目、学习进度
+3. RAG 检索题库知识库辅助回答
+4. 流式输出（SSE）提升用户体验
+
+```java
+@GetMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+public Flux<String> chatStream(@RequestParam String sessionId,
+                                @RequestParam String message) {
+    return aiAssistantService.chatStream(sessionId, message);
+}
+```
+
+### 12.4 学习分析报告（P1）
+
+```
+输入：用户的学习记录、考试成绩、错题分布
+ │
+ ▼
+AI 分析生成：
+- 薄弱知识点诊断
+- 学习路径推荐
+- 个性化复习计划
+- 下次考试预测分数
+```
+
+### 12.5 题库 RAG 知识库（P2）
+
+```
+构建流程：
+题目数据库 → 文档分块 → Embedding → Redis Vector Store
+                                              │
+用户提问 → 语义检索相关题目/知识点 → 注入 Prompt → LLM 回答
+```
+
+> 💡 **Redis 项目已经在用，升级为 Redis Stack 可直接支持向量存储，零新增基础设施成本。**
+
+---
+
+## 十三、实施计划
+
+### 13.1 分阶段实施
 
 | 阶段 | 内容 | 工期 | 优先级 |
 |---|---|---|---|
-| **第一阶段** | 基础设施 | 7-10 天 | P0 |
+| **Phase 1** | 基础设施 | 2-3 周 | P0 |
 | | estudy-ai 模块搭建 | | |
-| | Provider Gateway | | |
+| | Spring AI 接入（DeepSeek 为主） | | |
+| | Provider Gateway + 路由 | | |
 | | requestId 和调用日志 | | |
 | | 超时、重试、熔断 | | |
 | | 积分冻结与结算 | | |
-| | Provider 路由 | | |
-| | Prompt 版本管理 | | |
-| **第二阶段** | 错题讲解 | 5-7 天 | P1 |
+| | Prompt 模板体系建立 | | |
+| | 重构现有 Coze 批改（保留工作流，加抽象层） | | |
+| **Phase 2** | 核心功能 | 3-4 周 | P1 |
+| | AI 题目生成（管理后台） | | |
+| | 增强批改（结构化输出 + 错误分析） | | |
+| | 流式答疑对话 | | |
 | | Tool Calling 实现 | | |
 | | 安全上下文与权限 | | |
 | | 对话记忆 | | |
-| | 流式接口 | | |
-| **第三阶段** | RAG 知识库 | 8-12 天 | P1 |
-| | 文档解析与切分 | | |
-| | 向量化存储 | | |
-| | 混合检索 | | |
-| | 来源引用 | | |
-| **第四阶段** | 智能批改 | 10-15 天 | P2 |
-| | 图像预处理 | | |
-| | 多阶段流水线 | | |
-| | 客观题规则评分 | | |
-| | 主观题模型评分 | | |
-| | 结果校验 | | |
-| | 人工复核 | | |
+| **Phase 3** | 智能化提升 | 4-6 周 | P1-P2 |
+| | Redis Vector Store 搭建题库知识库 | | |
+| | RAG 增强答疑质量 | | |
+| | 学习报告生成 | | |
+| | 个性化推荐 | | |
+| | 多阶段批改流水线 | | |
 
-### 12.2 详细工期估算
+### 13.2 详细工期估算
 
 | 任务 | 单人工期 | 说明 |
 |---|---|---|
-| 技术 PoC、版本锁定 | 3-5 天 | 验证 Spring AI 版本兼容性 |
+| 技术 PoC、版本锁定 | 3-5 天 | 验证 Spring AI + DeepSeek 兼容性 |
 | AI Gateway、路由、审计 | 4-6 天 | 核心架构 |
+| Prompt 模板与结构化输出 | 2-3 天 | 模板管理 |
 | 批改流水线与结果校验 | 7-12 天 | 复杂度最高 |
 | 对话、记忆、SSE | 5-7 天 | 流式处理 |
 | Tool Calling 与权限治理 | 4-6 天 | 安全关键 |
@@ -1617,8 +1853,16 @@ public class AiMetrics {
 
 **单人完整生产版本：35-55 个工作日**
 
-### 12.3 推荐实施顺序
+### 13.3 推荐实施顺序
 
+```
+Phase 1：先完成基础设施，不急着做五种功能
+    ↓
+Phase 2：优先上线错题讲解（数据基础更确定，风险更小）
+    ↓
+Phase 3：上线 RAG（限定一个学科、一个年级）
+    ↓
+Phase 4：上线智能批改（单题 → 客观题 → 固定模板 → 整卷 → 主观题）
 ```
 第一阶段：先完成基础设施，不急着做五种功能
     ↓
