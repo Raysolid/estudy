@@ -51,7 +51,8 @@ cd estudy-admin && npm install && npm run dev
 
 ## 文档
 
-编码规范: docs/coding-style.md
-后端模块: docs/backend.md
-移动端: docs/mobile.md
-管理后台: docs/admin.md
+编码规范: docs/guides/coding-style.md
+后端模块: docs/guides/backend.md
+移动端: docs/guides/mobile.md
+管理后台: docs/guides/admin.md
+AI 设计: docs/design/AI-INTEGRATION-DESIGN.md
