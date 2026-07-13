@@ -21,7 +21,6 @@ estudy/
 │   └── estudy-admin/         # 管理端 API (端口 8091)
 ├── estudy-front/             # 移动端 (uni-app, 支持 H5/小程序/APP)
 ├── estudy-admin/             # 管理后台 (Vue 3 + Element Plus, 端口 4060)
-├── docs/                     # 设计文档
 └── AGENTS.md                 # 开发规范文档
 ```
 
